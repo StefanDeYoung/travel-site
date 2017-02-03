@@ -4,23 +4,25 @@ var gulp = require('gulp'),
     autoprefixer = require('autoprefixer'),
     cssvars = require('postcss-simple-vars'),
     nested = require('postcss-nested'),
-    cssImport = require('postcss-import');
+    cssImport = require('postcss-import'),
+    browserSync = require('browser-sync').create();
+
 
 //gulp.task('task name', function call)
 gulp.task('default', function(){
-  console.log('We did a task!')
-})
+  console.log('We did a task!');
+});
 
 //gulp.task('task name', function call)
 gulp.task('html', function(){
-  console.log('Changes made to index.html')
-})
+  console.log('Changes made to index.html');
+});
 
-gulp.task('styles', function(){
+gulp.task('styles', function() {
   return gulp.src('./app/assets/styles/styles.css')
-    .pipe(postcss([cssImport, nested, cssvars, autoprefixer]))
+    .pipe(postcss([cssImport, cssvars, nested, autoprefixer]))
     .pipe(gulp.dest('./app/temp/styles/'));
-})
+});
 
 gulp.task('watch', function(){
   //gulp-watch triggers an action when a file on the h
@@ -28,13 +30,26 @@ gulp.task('watch', function(){
   //gulp watch
   //ctrl-C to stop watching
 
-  watch('./app/index.html', function(){
-    gulp.start('html')
-  })
+  browserSync.init({
+    notify: false,
+    server: {
+      baseDir:"app"
+    }
+  });
 
-  watch('./app/assets/styles/**/*.css', function(){
+  watch('./app/index.html', function() {
+    browserSync.reload();
+  });
+
+  watch('./app/assets/styles/**/*.css', function() {
     //'./app/assets/styles/**/*.css'
     //** = any potential subdirectories
-    gulp.start('styles')
-  })
-})
+    gulp.start('cssInject');
+  });
+});
+
+//gulp.task('task name', ['dependancies'], function call)
+gulp.task('cssInject', ['styles'], function(){
+  return gulp.src('./app/temp/styles/styles.css')
+    .pipe(browserSync.stream());
+});
